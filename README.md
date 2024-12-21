@@ -25,4 +25,4 @@
 
 ## 许可协议
 
-本项目基于 GPL 许可协议。详细信息请查看 [LICENSE](LICENSE) 文件。
+本项目基于 GPL-3.0 许可协议。详细信息请查看 [LICENSE](LICENSE) 文件。
