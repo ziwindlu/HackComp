@@ -1,0 +1,14 @@
+#compdef {{ cmd_name }}
+_{{ cmd_name }}() {
+{% if options %}
+_arguments -C \
+    {% for option in options %}
+        {% if loop.last %}
+    '{{ option.name }}[{{ option.description }}]'
+        {% else %}
+    '{{ option.name }}[{{ option.description }}]' \
+        {% endif %}
+    {% endfor %}
+{% endif %}
+}
+compdef _{{ cmd_name }} {{ reg_cmd }}

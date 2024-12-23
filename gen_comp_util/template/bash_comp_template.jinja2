@@ -1,0 +1,19 @@
+# Bash completion for {{ cmd_name }}
+
+_{{ cmd_name }}() {
+# 这里定义你希望的补全内容
+local cur prev opts
+COMPREPLY=()   # 用于存储补全结果
+cur="${COMP_WORDS[COMP_CWORD]}"   # 当前输入的词
+prev="${COMP_WORDS[COMP_CWORD-1]}"   # 上一个词
+opts="{{ total_options_list }}"  # 定义子命令
+
+# 判断当前输入的内容并提供补全
+if [[ ${cur} == * ]]; then
+COMPREPLY=( $(compgen -W "${opts}" -- ${cur}) )  # 为当前输入提供补全选项
+fi
+}
+
+complete -F _{{ cmd_name }} {{ reg_cmd }}
+
+
