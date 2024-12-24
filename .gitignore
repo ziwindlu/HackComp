@@ -7,3 +7,6 @@ log/
 # editor configs
 .vscode
 .idea/
+
+# generated files
+gen_comp_util/output/*

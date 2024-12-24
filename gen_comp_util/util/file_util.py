@@ -71,3 +71,19 @@ def write_file_auto_check(file_path: str, content: str,
     else:
         log.debug('user cancel')
         return False
+
+
+def read_file(file_path: str) -> str:
+    """
+    读取文件
+    :param file_path: 文件路径
+    :return: 文件内容
+    """
+    try:
+        log.debug(f'read file {file_path}')
+        if not file_exists(file_path):
+            raise FileNotFoundError(f'file {file_path} not exists')
+        with open(file_path, 'r') as f:
+            return f.read()
+    except Exception as e:
+        log.error(f'read file {file_path} failed: {e}')

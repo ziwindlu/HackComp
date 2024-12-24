@@ -4,9 +4,9 @@ _{{ cmd_name }}() {
 _arguments -C \
     {% for option in options %}
         {% if loop.last %}
-    '{{ option.name }}[{{ option.description }}]'
+    '{{ option.name }}[{{ option.desc }}]'
         {% else %}
-    '{{ option.name }}[{{ option.description }}]' \
+    '{{ option.name }}[{{ option.desc }}]' \
         {% endif %}
     {% endfor %}
 {% endif %}
