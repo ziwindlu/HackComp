@@ -50,21 +50,28 @@ def resolve_options(args: dict, help_list: List[str]) -> List[Option]:
             # 判断是否存在"  "，如果没有说明该option name为单独一行
             if line.strip().find("  ") > 0:
                 log.debug(f"resolve_option: find new option. line: ' {line} '")
-                option_name_list.append(line[:desc_index].strip())
-                option_desc_list.append([line[desc_index:].strip()])
+                option_name_list.append(line[:desc_index])
+                option_desc_list.append([line[desc_index:]])
             else:
+                # 为了解析name占一整行的情况
                 log.debug(f"resolve_option: find new name. line: ' {line} '")
-                option_name_list.append(line.strip())
+                option_name_list.append(line)
                 option_desc_list.append([])
         else:
             # 如果前面全是空，直到desc_index重合 则认为是上一个option的desc
             if len(line) - len(line.lstrip()) == desc_index:
                 log.debug(f"resolve_option: find new desc. line: ' {line} '")
-                option_desc_list[len(option_desc_list) - 1].append(line.strip())
+                option_desc_list[len(option_desc_list) - 1].append(line)
             else:
                 log.debug(f"resolve_option: line: ' {line} ' is not option")
+    # 构造option对象
     for index, name in enumerate(option_name_list, 0):
-        option = Option(name, ''.join(option_desc_list[index]))
+        desc = option_desc_list[index]
+        # 为了处理name和desc中间只有一个空格的情况
+        if len(desc) == 0 and len(name) > desc_index:
+            desc = [name[desc_index:]]
+            name = name[:desc_index]
+        option = Option(name.strip(), ''.join([d.strip() for d in desc]))
         result_list.append(option)
     return result_list
 
@@ -142,17 +149,3 @@ def get_cmd_name(help_content: str) -> str:
     else:
         raise Exception('resolve: get cmd name failed')
 
-
-# test_content = """
-# usage: gen_comp.py [-h] [-t TYPE] [--reg-cmd REG_CMD] [--no-strigula] [-f HELP_FILE]
-#
-# options:
-#   -h, --help            show this help message and exit
-#   -t TYPE, --type TYPE  输入类型
-#   --reg-cmd REG_CMD     注册命令
-#   --no-strigula         不使用-解析--help类型
-#   -f HELP_FILE, --help-file HELP_FILE
-#                         指定help文件
-# """
-# o = get_help_resolve({}, test_content)
-# print(o)
