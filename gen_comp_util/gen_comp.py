@@ -37,22 +37,31 @@ def bash_arg_preprocess(args):
 def zsh_arg_preprocess(args):
     # 命令名转义
     args['reg_cmd'] = args['reg_cmd'].replace(' ', '\\\\ ')
-    # 存在name为"-a --abc"的option需要重新分割，顺序打乱了
-    no_preprocess_options = [o for o in args['options'] if ',' not in o.name]
-    need_preprocess_options = [o for o in args['options'] if ',' in o.name]
-    for need in need_preprocess_options:
-        split_names = need.name.split(',')
-        for s in split_names:
-            if s.strip().startswith('-'):
-                no_preprocess_options.append(Option(s.strip(), need.desc))
-    # 描述转义，描述中存在[]会导致无法补全
-    for o in no_preprocess_options:
-        o.desc = o.desc.replace('[', '\\[').replace(']', '\\]')
+    no_preprocess_options = args['options']
+    # # 存在name为"-a --abc"的option需要重新分割，顺序打乱了
+    # no_preprocess_options = [o for o in args['options'] if ',' not in o.name]
+    # need_preprocess_options = [o for o in args['options'] if ',' in o.name]
+    # for need in need_preprocess_options:
+    #     split_names = need.name.split(',')
+    #     for s in split_names:
+    #         if s.strip().startswith('-'):
+    #             no_preprocess_options.append(Option(s.strip(), need.desc))
+    # # 描述转义，描述中存在[]会导致无法补全
+    # for o in no_preprocess_options:
+    #     o.desc = o.desc.replace('[', '\\[').replace(']', '\\]')
     safe_list = [o for o in no_preprocess_options if o.is_safe()]
     unsafe_list = [o for o in no_preprocess_options if not o.is_safe()]
     # 排序
-    args['options'] = sorted(safe_list, key=lambda x: x.name)
-    args['options_unsafe'] = sorted(unsafe_list, key=lambda x: x.name)
+    args['options'] = sorted([s for s in safe_list
+                              if s.name.strip().startswith('-')
+                              and not s.name.strip().startswith('--')],
+                             key=lambda x: x.name)
+    args['long_options'] = sorted([s for s in safe_list if s.name.strip().startswith('--')], key=lambda x: x.name)
+    args['options_unsafe'] = sorted([u for u in unsafe_list
+                                     if u.name.strip().startswith('-')
+                                     and not u.name.strip().startswith('--')],
+                                    key=lambda x: x.name)
+    args['long_options_unsafe'] = sorted([u for u in unsafe_list if u.name.strip().startswith('--')], key=lambda x: x.name)
     return args
 
 

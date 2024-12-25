@@ -20,5 +20,25 @@ _arguments -C \
     {% endif %}
 {% endfor %}
 {% endif %}
+{% if long_options %}
+_arguments -C \
+{% for option in long_options %}
+    {% if loop.last %}
+        '{{ option.name }}[{{ option.desc }}]'
+    {% else %}
+        '{{ option.name }}[{{ option.desc }}]' \
+    {% endif %}
+{% endfor %}
+{% endif %}
+{% if long_options_unsafe %}
+#_arguments -C \
+{% for option in long_options_unsafe %}
+    {% if loop.last %}
+        #'{{ option.name | safe }}[{{ option.desc | safe }}]'
+    {% else %}
+        #'{{ option.name | safe }}[{{ option.desc | safe }}]' \
+    {% endif %}
+{% endfor %}
+{% endif %}
 }
 compdef _{{ cmd_name }} {{ reg_cmd }}

@@ -90,7 +90,24 @@ def resolve_options(args: dict, help_list: List[str]) -> List[Option]:
             name = name[:desc_index]
         option = Option(name.strip(), ''.join([d.strip() for d in desc]))
         result_list.append(option)
-    return result_list
+    # 处理name,处理多个name在一行的情况
+    new_result_list = []
+    for r in result_list:
+        sp:list = []
+        sp_by_space = r.name.strip().split(' ')
+        if len(sp_by_space) > 1:
+            sp = sp_by_space
+        else:
+            sp_by_comma = r.name.strip().split(',')
+            if len(sp_by_space) > 1:
+                sp = sp_by_comma
+        if len(sp) > 1:
+            for s in sp:
+                if s.strip().startswith('-'):
+                    new_result_list.append(Option(s.strip().replace(',', ''), r.desc))
+        else:
+            new_result_list.append(r)
+    return new_result_list
 
 
 def get_help_resolve(args: dict, help_content: str) -> Resolve:
