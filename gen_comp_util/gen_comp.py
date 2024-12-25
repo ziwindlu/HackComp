@@ -19,16 +19,24 @@ def get_args():
 
 
 def bash_arg_preprocess(args):
-    str_list = ''
+    # 处理选项名,将存在不安全字符的内容单独输出
+    safe_list = ''
+    unsafe_list = ''
     for k in args['options']:
-        str_list += f"{k.name} "
-    args['total_options_list'] = str_list
+        if template_util.has_unsafe_words(k.name):
+            unsafe_list += f"{k.name} "
+        else:
+            safe_list += f"{k.name} "
+    if unsafe_list != '':
+        log.warning(f'bash_preprocess: unsafe words in option name: {unsafe_list}')
+    args['total_options_list'] = safe_list
+    args['total_options_list_unsafe'] = unsafe_list
     return args
 
 
 def zsh_arg_preprocess(args):
     # 命令名转义
-    args['reg_cmd'] = template_util.escape_reg_cmd(args['reg_cmd'])
+    args['reg_cmd'] = args['reg_cmd'].replace(' ', '\\\\ ')
     # 存在name为"-a --abc"的option需要重新分割，顺序打乱了
     no_preprocess_options = [o for o in args['options'] if ',' not in o.name]
     need_preprocess_options = [o for o in args['options'] if ',' in o.name]
@@ -40,25 +48,31 @@ def zsh_arg_preprocess(args):
     # 描述转义，描述中存在[]会导致无法补全
     for o in no_preprocess_options:
         o.desc = o.desc.replace('[', '\\[').replace(']', '\\]')
-    args['options'] = no_preprocess_options
+    safe_list = [o for o in no_preprocess_options if o.is_safe()]
+    unsafe_list = [o for o in no_preprocess_options if not o.is_safe()]
+    # 排序
+    args['options'] = sorted(safe_list, key=lambda x: x.name)
+    args['options_unsafe'] = sorted(unsafe_list, key=lambda x: x.name)
     return args
+
+
+def write_to_file(file_name: str, content: str):
+    file_path = file_name
+    if current_config.output_dir:
+        file_path = os.path.join(current_config.output_dir, file_name)
+    file_util.write_file_auto_check(file_path, content)
+    template_util.rm_empty_lines(file_path)
 
 
 def bash_arg_after_process(rendered_template: str, args):
     f_p = f'{args["cmd_name"]}.bash'
-    if current_config.output_dir:
-        f_p = os.path.join(current_config.output_dir, f_p)
-    file_util.write_file_auto_check(f_p, rendered_template)
-    template_util.rm_empty_lines(f_p)
+    write_to_file(f_p, rendered_template)
     return True
 
 
 def zsh_arg_after_process(rendered_template: str, args):
     f_p = f'{args["cmd_name"]}.zsh'
-    if current_config.output_dir:
-        f_p = os.path.join(current_config.output_dir, f_p)
-    file_util.write_file_auto_check(f_p, rendered_template)
-    template_util.rm_empty_lines(f_p)
+    write_to_file(f_p, rendered_template)
     return True
 
 
@@ -92,6 +106,7 @@ def get_help_args(template_type: str, help_content: str) -> Resolve:
 
 
 def gen_comp(template_type: str, args: Resolve):
+    # 获取模板
     template: Template
     try:
         log.debug(f'get {template_type} template')
@@ -100,12 +115,17 @@ def gen_comp(template_type: str, args: Resolve):
     except Exception as e:
         log.error(f'get {template_type} template failed: {e}')
         sys.exit(1)
+    # 预处理args
+    args.escape_self()
     this_args = args.__dict__
     log.debug(f'get {template_type} args done')
+    # 渲染模板前的参数处理
     run_fn_by_type_preprocess(template_type=template_type, args=this_args)
     log.debug(f'render {template_type} template')
+    # 渲染模板
     rendered_content = template.render(**this_args)
     log.debug(f'render {template_type} template done')
+    # 模板渲染后的任务处理
     run_fn_by_type_after_process(template_type=template_type, rendered_template=rendered_content, args=this_args)
 
 

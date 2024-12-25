@@ -17,5 +17,33 @@ def rm_empty_lines(file_path: str):
         f_out.writelines(lines)
 
 
-def escape_reg_cmd(s: str) -> str:
-    return s.strip().replace(' ', '\\\\ ')
+unsafe_words = [
+    ';', '|', '&', '$', '>', '<', '`', '${', '$('
+]
+
+
+def escape_in_quotes_text(line: str, quotes: str):
+    if quotes == '"':
+        return line.replace('"', '\\"')
+    elif quotes == "'":
+        return line.replace('\'', '\\\'')
+
+
+def escape_unsafe_text(text):
+    for word in unsafe_words:
+        text = text.replace(word, f'\\{word}')
+    return text
+
+
+def has_unsafe_words(line: str) -> bool:
+    global unsafe_words
+    for word in unsafe_words:
+        if word in line:
+            return True
+    return False
+
+
+def check_and_escape_text(text: str) -> str:
+    if has_unsafe_words(text):
+        return escape_unsafe_text(text)
+    return text

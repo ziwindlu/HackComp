@@ -10,5 +10,15 @@ _arguments -C \
         {% endif %}
     {% endfor %}
 {% endif %}
+{% if options_unsafe %}
+#_arguments -C \
+{% for option in options_unsafe %}
+    {% if loop.last %}
+        #'{{ option.name | safe }}[{{ option.desc | safe }}]'
+    {% else %}
+        #'{{ option.name | safe }}[{{ option.desc | safe }}]' \
+    {% endif %}
+{% endfor %}
+{% endif %}
 }
 compdef _{{ cmd_name }} {{ reg_cmd }}

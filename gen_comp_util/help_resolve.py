@@ -2,20 +2,33 @@ import re
 from common import *
 from collections import Counter
 
-# 默认的猜测索引占比值
+# 默认的猜测索引占比值 越大越严格
 guss_index_proportion = 0.5
 
 
-class SubCommand:
+# Subcommand和option的基类
+class BaseC:
     def __init__(self, name: str, desc: str):
         self.name = name
         self.desc = desc
 
+    # 用于zsh
+    def is_safe(self):
+        return not (template_util.has_unsafe_words(self.desc) or template_util.has_unsafe_words(self.name))
 
-class Option:
+    # 用于bash
+    def is_safe_name(self):
+        return not template_util.has_unsafe_words(self.desc)
+
+
+class SubCommand(BaseC):
     def __init__(self, name: str, desc: str):
-        self.name: str = name
-        self.desc: str = desc
+        super().__init__(name, desc)
+
+
+class Option(BaseC):
+    def __init__(self, name: str, desc: str):
+        super().__init__(name, desc)
 
 
 class Resolve:
@@ -24,6 +37,10 @@ class Resolve:
         self.options = []
         self.subcommands = []
         self.reg_cmd = cmd_name
+
+    def escape_self(self):
+        self.reg_cmd = template_util.check_and_escape_text(self.reg_cmd)
+        self.cmd_name = template_util.check_and_escape_text(self.cmd_name)
 
 
 def resolve_subcommand(args: dict, help_list: List[str]) -> List[SubCommand]:
@@ -148,4 +165,3 @@ def get_cmd_name(help_content: str) -> str:
         return search_result.groups()[0]
     else:
         raise Exception('resolve: get cmd name failed')
-

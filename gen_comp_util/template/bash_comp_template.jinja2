@@ -6,7 +6,8 @@ local cur prev opts
 COMPREPLY=()   # 用于存储补全结果
 cur="${COMP_WORDS[COMP_CWORD]}"   # 当前输入的词
 prev="${COMP_WORDS[COMP_CWORD-1]}"   # 上一个词
-opts="{{ total_options_list }}"  # 定义子命令
+opts="{{ total_options_list }}"  # 定义子命令或选项
+# opts="{{ total_options_list_unsafe | safe }}"  # 不安全的命令或选项
 
 # 判断当前输入的内容并提供补全
 if [[ ${cur} == * ]]; then
