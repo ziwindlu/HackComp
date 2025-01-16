@@ -14,3 +14,7 @@
 ## web工具
 
 - [ ] sqlmap [GitHub - sqlmapproject/sqlmap](https://github.com/sqlmapproject/sqlmap)
+
+## 其他
+
+- [ ] ysoserial[GitHub - ysoserial/ysoserial](https://github.com/frohoff/ysoserial)

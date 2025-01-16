@@ -15,7 +15,12 @@ def get_args():
     parser.add_argument('--no-strigula', action='store_true', help='不使用-解析--help类型')
     parser.add_argument('-f', '--help-file', type=str, help='指定help文件')
     parser.add_argument('--output-dir', type=str, default='output', help='输出到某个文件夹')
-    return parser.parse_args()
+    parser.add_argument('--desc-index', type=int, default=None, help='描述的索引，用于辅助进行解析选项和描述')
+    parser.add_argument('--start-desc', type=str, default=None, help='描述起始前的字符串,用于辅助进行解析选项和描述')
+    parsed_args = parser.parse_args()
+    if parsed_args.start_desc and parsed_args.desc_index is None:
+        parsed_args.desc_index = len(parsed_args.start_desc)
+    return parsed_args
 
 
 def bash_arg_preprocess(args):

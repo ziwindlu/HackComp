@@ -9,8 +9,12 @@ guss_index_proportion = 0.5
 # Subcommand和option的基类
 class BaseC:
     def __init__(self, name: str, desc: str):
+        self.type = None
         self.name = name
         self.desc = desc
+
+    def set_type(self, t: str):
+        self.type = t
 
     # 用于zsh
     def is_safe(self):
@@ -27,8 +31,18 @@ class SubCommand(BaseC):
 
 
 class Option(BaseC):
+    type_list = ['switch', 'option']
+    default_type = 'switch'
+
     def __init__(self, name: str, desc: str):
         super().__init__(name, desc)
+        self.type = Option.default_type
+
+    def set_type(self, t: str):
+        if t in Option.type_list:
+            super().set_type(t)
+        else:
+            log.warning(f'type undefined: {t}')
 
 
 class Resolve:
@@ -49,8 +63,13 @@ def resolve_subcommand(args: dict, help_list: List[str]) -> List[SubCommand]:
 
 
 def resolve_options(args: dict, help_list: List[str]) -> List[Option]:
-    if 'desc_index' in args:
-        # todo 后面要改，这里没做具体实现
+    """
+    解析选项
+    :param args: 主函数参数
+    :param help_list: 帮助字符串列表
+    :return: 选项对象列表
+    """
+    if 'desc_index' in args and args.get('desc_index') is not None:
         n = args.get('desc_index')
         name_index = n
         desc_index = n
@@ -63,7 +82,7 @@ def resolve_options(args: dict, help_list: List[str]) -> List[Option]:
     # 解析出option name与desc
     for line in help_list:
         # -开头认为是option name
-        if line[name_index:desc_index].startswith('-'):
+        if line[:desc_index].strip().startswith('-'):
             # 判断是否存在"  "，如果没有说明该option name为单独一行
             if line.strip().find("  ") > 0:
                 log.debug(f"resolve_option: find new option. line: ' {line} '")
@@ -93,7 +112,7 @@ def resolve_options(args: dict, help_list: List[str]) -> List[Option]:
     # 处理name,处理多个name在一行的情况
     new_result_list = []
     for r in result_list:
-        sp:list = []
+        sp: list = []
         sp_by_space = r.name.strip().split(' ')
         if len(sp_by_space) > 1:
             sp = sp_by_space
@@ -128,14 +147,19 @@ def split_help_content(help_content: str) -> List[str]:
     return help_content.split('\n')
 
 
-def percent_of_list(c: int, l: list):
-    return c / len(l)
-
-
-def get_most_common_number_by_counter(data_list: List[int]):
+def get_most_common_number_by_counter(data_list: List[int]) -> int:
+    """
+    获取出现最多的数字
+    :param data_list: 数据源
+    :return: 出现最多的数字
+    """
     option_name_counter = Counter(data_list)
     # 获取出现次数最多的元素
     most_option_name_common = option_name_counter.most_common(1)
+
+    def percent_of_list(c: int, l: list):
+        return c / len(l)
+
     # 看看出现次数是否超过一半
     if percent_of_list(most_option_name_common[0][1], data_list) > guss_index_proportion:
         return most_option_name_common[0][0]
@@ -143,7 +167,12 @@ def get_most_common_number_by_counter(data_list: List[int]):
         return None
 
 
-def guss_option_index(help_list: List[str]):
+def guss_option_index(help_list: List[str]) -> Tuple[int, int]:
+    """
+    猜测命令名和描述之间的分割索引
+    :param help_list: 帮助信息
+    :return: (命令名索引, 描述索引)
+    """
     # 如果不好用，后面要添加用户传入的辅助index
     filtered_list = filter(lambda x: '-' in x, help_list)
     option_name_indexes = []
@@ -176,6 +205,11 @@ def guss_subcommand_index(help_list: List[str]):
 
 
 def get_cmd_name(help_content: str) -> str:
+    """
+    获取命令名字
+    :param help_content: 帮助信息字符串
+    :return: 命令名字
+    """
     r = r"(?i)\busage:\s+(\S+)\b.*"
     search_result = re.search(r, help_content)
     if search_result.groups():

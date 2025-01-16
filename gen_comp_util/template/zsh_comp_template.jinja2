@@ -14,9 +14,9 @@ _arguments -C \
 #_arguments -C \
 {% for option in options_unsafe %}
     {% if loop.last %}
-        #'{{ option.name | safe }}[{{ option.desc | safe }}]'
+        #'{{ option.name | safe }}[{{ option.desc }}]'
     {% else %}
-        #'{{ option.name | safe }}[{{ option.desc | safe }}]' \
+        #'{{ option.name | safe }}[{{ option.desc }}]' \
     {% endif %}
 {% endfor %}
 {% endif %}
